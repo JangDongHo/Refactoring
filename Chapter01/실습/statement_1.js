@@ -54,11 +54,17 @@ function statement(invoice, plays) {
 const fs = require("fs");
 
 // invoices.json 파일에서 데이터 읽어오기
-const invoicesData = fs.readFileSync("./Chapter01/invoices.json", "utf8");
+const invoicesData = fs.readFileSync(
+  "./Chapter01/실습/datasets/invoices.json",
+  "utf8"
+);
 const invoices = JSON.parse(invoicesData);
 
 // plays.json 파일에서 데이터 읽어오기
-const playsData = fs.readFileSync("./Chapter01/plays.json", "utf8");
+const playsData = fs.readFileSync(
+  "./Chapter01/실습/datasets/plays.json",
+  "utf8"
+);
 const plays = JSON.parse(playsData);
 
 // statement 함수에 데이터 전달하여 실행

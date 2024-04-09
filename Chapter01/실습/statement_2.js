@@ -1,3 +1,11 @@
+/* 
+1.5 중간 점검
+- 리팩토링 결과 코드 구조가 한결 나아졌다.
+- 최상위의 statement() 함수는 이제 단 일곱 줄뿐이며, 출력할 문장을 생성하는 일만 한다.
+- 계산 로직은 모두 여러 개의 보조 함수로 빼냈다.
+- 결과적으로 각 계산 과정은 물론 전체 흐름을 파악하기가 훨씬 쉬워졌다.
+*/
+
 function statement(invoice, plays) {
   let result = `청구내역 (고객명: ${invoice.customer})\n`;
   for (let perf of invoice.performances) {
@@ -79,11 +87,17 @@ function statement(invoice, plays) {
 const fs = require("fs");
 
 // invoices.json 파일에서 데이터 읽어오기
-const invoicesData = fs.readFileSync("./Chapter01/invoices.json", "utf8");
+const invoicesData = fs.readFileSync(
+  "./Chapter01/실습/datasets/invoices.json",
+  "utf8"
+);
 const invoices = JSON.parse(invoicesData);
 
 // plays.json 파일에서 데이터 읽어오기
-const playsData = fs.readFileSync("./Chapter01/plays.json", "utf8");
+const playsData = fs.readFileSync(
+  "./Chapter01/실습/datasets/plays.json",
+  "utf8"
+);
 const plays = JSON.parse(playsData);
 
 // statement 함수에 데이터 전달하여 실행
