@@ -1,97 +1,53 @@
 /* 
-1.6 계산 단계와 포맷팅 단계 분리하기
+1.7 중간 점검: 두 파일(과 두 단계)로 분리됨
 */
 
+const createStatementData = require("./statement_3_create");
+
 function statement(invoice, plays) {
-  const statementData = {};
-  statementData.customer = invoice.customer; // 고객 데이터를 중간 데이터로 옮김
-  statementData.performances = invoice.performances.map(enrichPerformance); // 중간 데이터 구조에 공연 정보 추가
-  console.log(statementData);
-  return renderPlainText(statementData, plays); // 중간 데이터 구조를 인수로 전달
+  return renderPlainText(createStatementData(invoice, plays)); // 중간 데이터 구조를 인수로 전달
+}
 
-  function enrichPerformance(aPerformance) {
-    const result = Object.assign({}, aPerformance); // 얕은 복사 수행
-    return result;
+// 본문 전체를 별도 함수로 추출
+function renderPlainText(data, plays) {
+  let result = `청구내역 (고객명: ${data.customer})\n`;
+  for (let perf of data.performances) {
+    // 청구 내역을 출력한다.
+    result += `${perf.play.name}: ${usd(perf.amount / 100)} ${
+      perf.audience
+    }석\n`;
   }
+  result += `총액 ${usd(data.totalAmount / 100)}\n`;
+  result += `적립 포인트 ${data.totalVolumeCredits}점\n`;
 
-  // 본문 전체를 별도 함수로 추출
-  function renderPlainText(data, plays) {
-    let result = `청구내역 (고객명: ${data.customer})\n`;
-    for (let perf of data.performances) {
-      // 청구 내역을 출력한다.
-      result += `${playFor(perf).name}: ${usd(amountFor(perf) / 100)} ${
-        perf.audience
-      }석\n`;
-    }
-    result += `총액 ${usd(totalAmount() / 100)}\n`;
-    result += `적립 포인트 ${totalVolumeCredits()}점\n`;
+  return result;
+}
 
-    return result;
+function htmlStatement(invoice, plays) {
+  return renderHtml(createStatementData(invoice, plays)); // 중간 데이터 구조를 인수로 전달
+}
 
-    function totalAmount() {
-      let result = 0;
-      for (let perf of data.performances) {
-        result += amountFor(perf);
-      }
-      return result;
-    }
-
-    function totalVolumeCredits() {
-      let result = 0; // 변수 선언(초기화)을 반복문 앞으로 이동
-      for (let perf of data.performances) {
-        result += volumeCreditsFor(perf);
-      }
-      return result;
-    }
+function renderHtml(data) {
+  let result = `<h1>청구 내역 (고객명: ${data.customer})</h1>\n`;
+  result += "<table>\n";
+  result += "<tr><th>연극</th><th>좌석 수</th><th>금액</th></tr>";
+  for (let perf of data.performances) {
+    result += ` <tr><td>${perf.play.name}</td><td>${perf.audience}석</td>`;
+    result += `<td>${usd(perf.amount)}</td></tr>\n`;
   }
+  result += "</table>\n";
+  result += `<p>총액: <em>${usd(data.totalAmount)}</em></p>\n`;
+  result += `<p>적립 포인트: <em>${data.totalVolumeCredits}</em>점</p>\n`;
 
-  // 로컬 변수를 질의 함수로 바꾸기
-  function playFor(aPerformance) {
-    return plays[aPerformance.playID];
-  }
+  return result;
+}
 
-  // 값이 바뀌지 않는 값은 매개변수로 전달
-  function amountFor(aPerformance) {
-    let result = 0; // 변수를 초기화하는 코드, 명확한 이름으로 변경(화자는 함수의 반환 값에는 항상 result를 사용)
-    switch (playFor(aPerformance).type) {
-      case "tragedy":
-        result = 40_000;
-
-        if (aPerformance.audience > 30) {
-          result += 1_000 * (aPerformance.audience - 30);
-        }
-        break;
-      case "comedy":
-        result = 30_000;
-
-        if (aPerformance.audience > 20) {
-          result += 10_000 + 500 * (aPerformance.audience - 20);
-        }
-        result += 300 * aPerformance.audience;
-        break;
-
-      default:
-        throw new Error(`알 수 없는 장르: ${playFor(aPerformance).type}`);
-    }
-    return result; // 함수 안에서 값이 바뀌는 변수 반환
-  }
-
-  function volumeCreditsFor(aPerformance) {
-    let result = 0;
-    result += Math.max(aPerformance.audience - 30, 0);
-    if ("comedy" === playFor(aPerformance).type) {
-      result += Math.floor(aPerformance.audience / 5);
-    }
-    return result;
-  }
-
-  function usd(aNumber) {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 2,
-    }).format(aNumber);
-  }
+function usd(aNumber) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(aNumber);
 }
 
 const fs = require("fs");
